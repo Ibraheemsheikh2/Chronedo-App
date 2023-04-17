@@ -12,11 +12,10 @@ async function scrapeWatches(url) {
   // Scroll to the bottom of the page to load all content
   await autoScroll(page);
 
-  const data = await page.evaluate(() => {
+  const data = await page.evaluate(async () => {
     const watchItems = document.querySelectorAll(".article-item-container");
-    const watches = [];
 
-    watchItems.forEach((item) => {
+    const extractData = async (item) => {
       const linkElement = item.querySelector("a");
       const titleElement = item.querySelector(".text-bold.text-ellipsis");
       const subtitleElement = item.querySelector(".text-ellipsis.m-b-2");
@@ -27,15 +26,18 @@ async function scrapeWatches(url) {
         ".article-item-image-container img"
       );
       const imageUrl = imageElement ? imageElement.src : null;
-      watches.push({
+
+      return {
         link: linkElement ? linkElement.href : null,
         title: titleElement ? titleElement.innerText.trim() : null,
         subtitle: subtitleElement ? subtitleElement.innerText.trim() : null,
         price: priceElement ? priceElement.innerText.trim() : null,
         image: imageUrl,
-      });
-    });
+      };
+    };
 
+    const promises = Array.from(watchItems).map((item) => extractData(item));
+    const watches = await Promise.all(promises);
     return watches;
   });
 
