@@ -4,13 +4,19 @@ const puppeteer = require("puppeteer");
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-async function scrapeWatches(url) {
-  const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
-  await page.goto(url, { waitUntil: "networkidle2" });
+let browser;
 
-  // Scroll to the bottom of the page to load all content
-  await autoScroll(page);
+async function getBrowserInstance() {
+  if (!browser) {
+    browser = await puppeteer.launch({ headless: true });
+  }
+  return browser;
+}
+
+async function scrapeWatches(url) {
+  const browser = await getBrowserInstance();
+  const page = await browser.newPage();
+  await page.goto(url, { waitUntil: "networkidle0", timeout: 60000 });
 
   const data = await page.evaluate(() => {
     const watchItems = document.querySelectorAll(".article-item-container");
@@ -39,28 +45,10 @@ async function scrapeWatches(url) {
     return watches;
   });
 
-  await browser.close();
+  await page.close();
   return data;
 }
 
-async function autoScroll(page) {
-  await page.evaluate(async () => {
-    await new Promise((resolve, reject) => {
-      let totalHeight = 0;
-      const distance = 100;
-      const timer = setInterval(() => {
-        const scrollHeight = document.body.scrollHeight;
-        window.scrollBy(0, distance);
-        totalHeight += distance;
-
-        if (totalHeight >= scrollHeight) {
-          clearInterval(timer);
-          resolve();
-        }
-      }, 100);
-    });
-  });
-}
 
 app.get("/rolex", async (req, res) => {
   const url = "https://www.chrono24.com/rolex/ref-126334.htm";

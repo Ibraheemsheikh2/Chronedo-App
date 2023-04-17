@@ -2,5 +2,15 @@
   "dependencies": {
     "express": "^4.18.2",
     "puppeteer": "^19.9.1"
-  }
+  },
+  "name": "chronedo-app",
+  "version": "1.0.0",
+  "main": "code.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }
